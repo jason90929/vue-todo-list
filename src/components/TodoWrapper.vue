@@ -16,7 +16,7 @@
       />
     </div>
     <ul class="todo-list">
-      <li v-for="(todo, index) in todos">
+      <li v-for="(todo, index) in filteredTodos">
         <label class="label fl todo-content-item">
           <input type="checkbox" @click="completeTodo" v-model="todo.completed" />
         </label>
@@ -41,8 +41,24 @@
       </li>
     </ul>
     <div class="todo-filter">
-      <span>{{ remaining }} {{ pluralize }} left</span>
-
+      <span class="remaning">{{ remaining }} {{ pluralize }} left</span>
+      <ul class="filter-list">
+        <li :class="{ active: visibility === 'all' }">
+          <a href="javascript:" @click="changeFilteredTodos('all');">
+            All
+          </a>
+        </li>
+        <li :class="{ active: visibility === 'active' }">
+          <a href="javascript:" @click="changeFilteredTodos('active');">
+            Active
+          </a>
+        </li>
+        <li :class="{ active: visibility === 'completed' }">
+          <a href="javascript:" @click="changeFilteredTodos('completed');">
+            Completed
+          </a>
+        </li>
+      </ul>
       <button type="button" v-show="getCompletedTodos().length >= 1" @click="clearCompletedTodos">Clear Completed</button>
     </div>
   </div>
@@ -53,7 +69,7 @@ export default {
   name: 'todo-wrapper',
   data() {
     return {
-      msg: 'Welcome to Your Vue.js App',
+      visibility: 'all',
       newTodo: '',
       editedTodo: '',
       todos: [{
@@ -72,6 +88,17 @@ export default {
       }
 
       return 'item';
+    },
+    filteredTodos() {
+      switch (this.visibility) {
+        case 'active':
+          return this.getUncompletedTodos();
+        case 'completed':
+          return this.getCompletedTodos();
+        case 'all':
+        default:
+          return this.todos;
+      }
     },
   },
   methods: {
@@ -138,6 +165,10 @@ export default {
     },
     clearCompletedTodos() {
       this.todos = this.getUncompletedTodos();
+      this.filteredTodos = this.todos;
+    },
+    changeFilteredTodos(visibility = 'all') {
+      this.visibility = visibility;
     },
   },
   // a custom directive to wait for the DOM to be updated
@@ -196,20 +227,59 @@ export default {
 
   .todo-filter {
     padding: 15px 0;
+    display: flex;
+    display: -webkit-flex;
+    -webkit-align-self: center;
+    align-self: center;
+    -webkit-justify-content: center;
+    justify-content: center;
   }
 
   ul {
     list-style-type: none;
-    margin: 0 10px;
-    padding: 10px 0;
+    margin: 0;
+    padding: 0;
   }
 
-  li {
-    display: block;
-    padding: 8px 0;
-    border-bottom-width: 1px;
-    border-bottom-color: #64af5f;
-    border-bottom-style: solid;
+  .todo-list {
+    list-style-type: none;
+    margin: 0 10px;
+    padding: 10px 0;
+
+    li {
+      display: block;
+      padding: 8px 0;
+      border-bottom-width: 1px;
+      border-bottom-color: #64af5f;
+      border-bottom-style: solid;
+    }
+  }
+
+  .filter-list {
+    display: inline-block;
+    margin: 0 8px;
+
+    &::after {
+      content: '';
+      display: block;
+      clear: both;
+    }
+
+    li {
+      float: left;
+      padding: 4px 10px;
+      background-color: #b5efa8;
+      margin: 0 2px;
+
+      &.active {
+        background-color: #10a902;
+
+        a {
+          color: #fff;
+          font-weight: bold;
+        }
+      }
+    }
   }
 
   .completed {
@@ -240,5 +310,10 @@ export default {
     width: calc(100% - 40px);
     height: 38px;
     line-height: 38px;
+  }
+
+  .remaning {
+    display: inline-block;
+    line-height: 30px;
   }
 </style>
