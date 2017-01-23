@@ -134,8 +134,7 @@ export default {
     editTodo(todo) {
       const Todo = todo;
       Todo.editable = true;
-      const todoCopy = Object.assign(Todo);
-      this.editedTodo = todoCopy.value;
+      this.editedTodo = Todo.value;
     },
     doneEditTodo(todo) {
       if (!this.editedTodo) {
