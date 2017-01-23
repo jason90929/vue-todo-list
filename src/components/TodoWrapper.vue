@@ -44,17 +44,17 @@
       <span class="remaning">{{ remaining }} {{ pluralize }} left</span>
       <ul class="filter-list">
         <li :class="{ active: visibility === 'all' }">
-          <a href="javascript:" @click="changeFilteredTodos('all');">
+          <a href="javascript:" @click="changeVisibility('all');">
             All
           </a>
         </li>
         <li :class="{ active: visibility === 'active' }">
-          <a href="javascript:" @click="changeFilteredTodos('active');">
+          <a href="javascript:" @click="changeVisibility('active');">
             Active
           </a>
         </li>
         <li :class="{ active: visibility === 'completed' }">
-          <a href="javascript:" @click="changeFilteredTodos('completed');">
+          <a href="javascript:" @click="changeVisibility('completed');">
             Completed
           </a>
         </li>
@@ -167,7 +167,7 @@ export default {
       this.todos = this.getUncompletedTodos();
       this.filteredTodos = this.todos;
     },
-    changeFilteredTodos(visibility = 'all') {
+    changeVisibility(visibility = 'all') {
       this.visibility = visibility;
     },
   },
