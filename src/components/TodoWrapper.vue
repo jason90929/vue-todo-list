@@ -2,7 +2,7 @@
   <div class="todo-wrapper">
     <div>
       <a href="javascript:" v-show="!isAllTodosCompleted()" class="complete-all" @click="completeAllTodos">SELECT ALL</a>
-      <a href="javascript:" v-show="isAllTodosCompleted()" class="complete-all" @click="uncompleteAllTodos">DESELECT ALL</a>
+      <a href="javascript:" v-show="isAllTodosCompleted()" class="complete-all" @click="incompleteAllTodos">DESELECT ALL</a>
       <input
         type="text"
         class="todo-input"
@@ -16,10 +16,28 @@
         <label class="label fl">
           <input type="checkbox" @click="completeTodo" v-model="todo.completed" />
         </label>
-        <span :class="todo.completed ? 'completed' : ''">{{ todo.value }}</span>
-        <a href="javascript:;" class="flr" @click="removeTodo(index);">X</a>
+        <span
+          v-show="!todo.editable"
+          :class="todo.completed ? 'completed' : ''"
+          @dblclick="editTodo(todo);"
+        >
+          {{ todo.value }}
+        </span>
+        <input
+          v-show="todo.editable"
+          v-todo-focus="todo == editedTodo"
+          v-model="editedTodo"
+          @blur="doneEditTodo(todo);"
+          @keydown.enter="doneEditTodo(todo);"
+          @keydown.esc="cancelEditTodo(todo);"
+        />
+        <a href="javascript:" class="flr" @click="removeTodo(index);">X</a>
       </li>
     </ul>
+    <div class="todo-filter">
+      <span>{{ remaining }} {{ pluralize }} left</span>
+      <button type="button" @click="clearCompletedTodos">Clear Completed</button>
+    </div>
   </div>
 </template>
 
@@ -30,52 +48,93 @@ export default {
     return {
       msg: 'Welcome to Your Vue.js App',
       newTodo: '',
+      editedTodo: '',
       todos: [{
         value: 'First Todo',
         completed: true,
       }],
     };
   },
+  computed: {
+    remaining() {
+      return this.todos.filter(this.getUncompletedTodos()).length;
+    },
+    pluralize() {
+      if (this.todos.filter(this.getUncompletedTodos()).length > 1) {
+        return 'items';
+      }
+
+      return 'item';
+    },
+  },
   methods: {
     addTodo() {
       this.todos.push({
-        value: this.newTodo,
+        value: this.newTodo.trim(),
         completed: false,
       });
       this.newTodo = '';
     },
     isAllTodosCompleted() {
-      let allTodosCompleted = true;
-      this.todos.map((todo) => {
-        const Todo = todo;
-        if (!Todo.completed) {
-          allTodosCompleted = false;
-        }
-
-        return null;
-      });
-
-      return allTodosCompleted;
+      return this.todos.every(todo =>
+        todo.completed === true
+      );
     },
     completeAllTodos() {
-      this.todos.map((todo) => {
+      this.todos.every((todo) => {
         const Todo = todo;
         Todo.completed = true;
         return Todo;
       });
     },
-    uncompleteAllTodos() {
-      this.todos.map((todo) => {
+    incompleteAllTodos() {
+      this.todos.every((todo) => {
         const Todo = todo;
         Todo.completed = false;
         return Todo;
       });
+    },
+    editTodo(todo) {
+      const Todo = todo;
+      Todo.editable = true;
+      const todoCopy = Object.assign(Todo);
+      this.editedTodo = todoCopy.value;
+    },
+    doneEditTodo(todo) {
+      if (!this.editedTodo) {
+        return;
+      }
+      const Todo = todo;
+      Todo.editable = false;
+      Todo.value = this.editedTodo;
+      this.editedTodo = '';
+    },
+    cancelEditTodo(todo) {
+      const Todo = todo;
+      Todo.editable = false;
+      this.editedTodo = '';
     },
     completeTodo() {
       this.completed = !this.completed;
     },
     removeTodo(index) {
       this.todos.splice(index, 1);
+    },
+    getUncompletedTodos() {
+      return (todo = {}) => !todo.completed;
+    },
+    clearCompletedTodos() {
+      this.todos = this.todos.filter(this.getUncompletedTodos());
+    },
+  },
+  // a custom directive to wait for the DOM to be updated
+  // before focusing on the input field.
+  // http://vuejs.org/guide/custom-directive.html
+  directives: {
+    'todo-focus': (el, value) => {
+      if (value) {
+        el.focus();
+      }
     },
   },
 };
@@ -100,11 +159,19 @@ export default {
     padding: 8px 10px;
     height: 38px;
     font-size: 14px;
+
+    &:focus {
+      outline: none;
+    }
   }
 
   .todo-wrapper {
     display: block;
     background-color: #eee;
+  }
+
+  .todo-filter {
+    padding: 15px 0;
   }
 
   ul {
@@ -116,12 +183,9 @@ export default {
   li {
     display: block;
     padding: 8px 0;
-
-    + li {
-      border-top-width: 1px;
-      border-top-color: #64af5f;
-      border-top-style: solid;
-    }
+    border-bottom-width: 1px;
+    border-bottom-color: #64af5f;
+    border-bottom-style: solid;
   }
 
   .completed {
