@@ -1,4 +1,4 @@
-# vue-hello-world
+# vue-todo-list
 
 > A Vue.js project
 
