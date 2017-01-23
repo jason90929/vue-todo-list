@@ -1,11 +1,15 @@
 <template>
   <div class="todo-wrapper">
-    <div>
+    <hgroup>
+      <h1>TODOS</h1>
+      <h4>Edited by Jason Tseng</h4>
+    </hgroup>
+    <div class="mt-ms">
       <a href="javascript:" v-show="!isAllTodosCompleted()" class="complete-all" @click="completeAllTodos">SELECT ALL</a>
       <a href="javascript:" v-show="isAllTodosCompleted()" class="complete-all" @click="incompleteAllTodos">DESELECT ALL</a>
       <input
         type="text"
-        class="todo-input"
+        class="todo-input todo-input-main"
         placeholder="add something..."
         v-model="newTodo"
         @keydown.enter="addTodo"
@@ -13,17 +17,19 @@
     </div>
     <ul class="todo-list">
       <li v-for="(todo, index) in todos">
-        <label class="label fl">
+        <label class="label fl todo-content-item">
           <input type="checkbox" @click="completeTodo" v-model="todo.completed" />
         </label>
         <span
           v-show="!todo.editable"
+          class="todo-content"
           :class="todo.completed ? 'completed' : ''"
           @dblclick="editTodo(todo);"
         >
           {{ todo.value }}
         </span>
         <input
+          class="todo-input todo-content"
           v-show="todo.editable"
           v-todo-focus="todo == editedTodo"
           v-model="editedTodo"
@@ -31,12 +37,13 @@
           @keydown.enter="doneEditTodo(todo);"
           @keydown.esc="cancelEditTodo(todo);"
         />
-        <a href="javascript:" class="flr" @click="removeTodo(index);">X</a>
+        <a href="javascript:" class="flr todo-content-item" @click="removeTodo(index);">✕</a>
       </li>
     </ul>
     <div class="todo-filter">
       <span>{{ remaining }} {{ pluralize }} left</span>
-      <button type="button" @click="clearCompletedTodos">Clear Completed</button>
+
+      <button type="button" v-show="getCompletedTodos().length >= 1" @click="clearCompletedTodos">Clear Completed</button>
     </div>
   </div>
 </template>
@@ -57,10 +64,10 @@ export default {
   },
   computed: {
     remaining() {
-      return this.todos.filter(this.getUncompletedTodos()).length;
+      return this.getUncompletedTodos().length;
     },
     pluralize() {
-      if (this.todos.filter(this.getUncompletedTodos()).length > 1) {
+      if (this.getUncompletedTodos().length > 1) {
         return 'items';
       }
 
@@ -69,6 +76,9 @@ export default {
   },
   methods: {
     addTodo() {
+      if (this.newTodo.trim() === '') {
+        return;
+      }
       this.todos.push({
         value: this.newTodo.trim(),
         completed: false,
@@ -120,11 +130,14 @@ export default {
     removeTodo(index) {
       this.todos.splice(index, 1);
     },
+    getCompletedTodos() {
+      return this.todos.filter((todo = {}) => todo.completed);
+    },
     getUncompletedTodos() {
-      return (todo = {}) => !todo.completed;
+      return this.todos.filter((todo = {}) => !todo.completed);
     },
     clearCompletedTodos() {
-      this.todos = this.todos.filter(this.getUncompletedTodos());
+      this.todos = this.getUncompletedTodos();
     },
   },
   // a custom directive to wait for the DOM to be updated
@@ -154,8 +167,19 @@ export default {
     line-height: 19px;
   }
 
-  .todo-input {
+  h1, h4 {
+    margin: 0;
+  }
+
+  .mt-ms {
+    margin-top: 20px;
+  }
+
+  .todo-input-main {
     width: calc(100% - #{$complete-all-w});
+  }
+
+  .todo-input {
     padding: 8px 10px;
     height: 38px;
     font-size: 14px;
@@ -177,7 +201,7 @@ export default {
   ul {
     list-style-type: none;
     margin: 0 10px;
-    padding: 0;
+    padding: 10px 0;
   }
 
   li {
@@ -203,5 +227,18 @@ export default {
 
   .flr {
     float: right;
+  }
+
+  .todo-content-item {
+    width: 20px;
+    height: 38px;
+    line-height: 38px;
+  }
+
+  .todo-content {
+    display: inline-block;
+    width: calc(100% - 40px);
+    height: 38px;
+    line-height: 38px;
   }
 </style>
